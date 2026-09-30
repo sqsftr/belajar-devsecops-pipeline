@@ -1,77 +1,51 @@
-"""Modul backend autentikasi Flask dengan antarmuka web interaktif."""
+from flask import Flask, request
 
 import sqlite3
-from datetime import datetime, timezone
 
-from flask import Flask, jsonify, render_template, request
+
 
 app = Flask(__name__)
 
+def get_db_connection():
 
-def init_db():
-    """Inisialisasi basis data dan membuat data pengguna awal."""
     conn = sqlite3.connect("users.db")
+
+    return conn
+
+@app.route("/login", methods=["GET"])
+
+def login():
+
+    username = request.args.get("username")
+
+    password = request.args.get("password")
+
+    conn = get_db_connection()
+
     cursor = conn.cursor()
-    cursor.execute(
-        "CREATE TABLE IF NOT EXISTS users (username TEXT, password TEXT)"
+
+    # Rentan: string formatting pada query memicu celah SQL Injection
+
+    query = "SELECT * FROM users WHERE username = '%s' AND password = '%s'" % (
+
+        username,
+
+        password,
+
     )
-    cursor.execute(
-        "INSERT OR IGNORE INTO users VALUES ('admin', 'supersecret')"
-    )
-    conn.commit()
+
+    cursor.execute(query)
+
+    user = cursor.fetchone()
+
     conn.close()
 
+    if user:
 
-@app.route("/", methods=["GET", "POST"])
-def index():
-    """Menampilkan formulir login dan memproses autentikasi."""
-    message = None
-    status_class = None
+        return "Login berhasil"
 
-    if request.method == "POST":
-        username = request.form.get("username", "")
-        password = request.form.get("password", "")
-
-        conn = sqlite3.connect("users.db")
-        cursor = conn.cursor()
-        # Parameterized query untuk mencegah SQL Injection
-        query = "SELECT * FROM users WHERE username = ? AND password = ?"
-        cursor.execute(query, (username, password))
-        user = cursor.fetchone()
-        conn.close()
-
-        if user:
-            message = "Login Berhasil! Selamat datang."
-            status_class = "success"
-        else:
-            message = "Login Gagal! Kredensial tidak valid."
-            status_class = "danger"
-
-    return render_template(
-        "index.html", message=message, status_class=status_class
-    )
-
-
-@app.route("/health", methods=["GET"])
-def health():
-    """Endpoint pengecekan status aplikasi (health check)."""
-    return jsonify(
-        status="ok",
-        service="secure-flask-app",
-        timestamp=datetime.now(timezone.utc).isoformat(),
-    )
-
-
-@app.route("/about", methods=["GET"])
-def about():
-    """Menampilkan informasi singkat tentang aplikasi."""
-    return jsonify(
-        name="Secure Flask App",
-        description="Demo pipeline DevSecOps dengan GitHub Actions",
-        pipeline=["Semgrep SAST", "Pylint", "Docker", "Auto Deploy"],
-    )
-
+    return "Login gagal"
 
 if __name__ == "__main__":
-    init_db()
-    app.run(host="0.0.0.0", port=5000)  # nosemgrep
+
+    app.run(host="0.0.0.0", port=5000)
