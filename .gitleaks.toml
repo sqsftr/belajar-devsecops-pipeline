@@ -1,0 +1,10 @@
+# .gitleaks.toml
+[extend]
+# Menggunakan aturan regex default gitleaks
+
+[allowlist]
+description = "Abaikan folder tes dan environment virtual"
+paths = [
+  '''tests/.*''',
+  '''\.venv/.*'''
+]
