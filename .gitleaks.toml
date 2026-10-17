@@ -1,10 +1,11 @@
-# .gitleaks.toml
+title = "Gitleaks config belajar-devsecops-pipeline"
+
 [extend]
-# Menggunakan aturan regex default gitleaks
+useDefault = true
 
 [allowlist]
 description = "Abaikan folder tes dan environment virtual"
 paths = [
-  '''tests/.*''',
+  '''test/.*''',
   '''\.venv/.*'''
 ]
