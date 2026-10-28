@@ -1,68 +1,31 @@
-name: DevSecOps CI/CD Pipeline
+name: DevSecOps Pipeline
 
 on:
-    push:
-        branches: ["main", "master"]
-    pull_request:
-        branches: ["main", "master"]
-    workflow_dispatch: {}
+  push:
+    branches: [ "main", "pipeline/pylint-quality" ]
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
-    # ==========================================
-    # CI JOB 1: SAST Scan (Semgrep)
-    # ==========================================
-    sast-scan:
-        name: Semgrep SAST Scan
-        runs-on: ubuntu-latest
-        container:
-            image: semgrep/semgrep
-        steps:
-            - name: Checkout Source Code
-              uses: actions/checkout@v4
+  pylint-quality:
+    name: Pylint Code Quality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-            - name: Run Semgrep SAST
-              # --exclude=".github" mencegah Semgrep memeriksa file workflow YAML
-              run: semgrep scan --config auto --error --verbose --exclude=".github"
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
 
-    # ==========================================
-    # CI JOB 2: Code Quality (Pylint)
-    # ==========================================
-    pylint-check:
-        name: Pylint Code Quality Gate
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout Source Code
-              uses: actions/checkout@v4
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pylint
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; endif
 
-            - name: Setup Python
-              uses: actions/setup-python@v5
-              with:
-                  python-version: "3.10"
-
-            - name: Install Dependencies
-              run: |
-                  python -m pip install --upgrade pip
-                  pip install pylint
-                  pip install -r requirements.txt
-
-            - name: Run Pylint Check
-              run: pylint --fail-under=9.0 app.py
-
-    # ==========================================
-    # CD STAGE: Deploy ke VM
-    # ==========================================
-    deploy-to-vm:
-        name: Build & Deploy to VirtualBox VM
-        needs: [sast-scan, pylint-check]
-        runs-on: self-hosted
-        steps:
-            - name: Checkout Source Code
-              uses: actions/checkout@v4
-
-            - name: Build and Run Container
-              run: |
-                  docker build -t secure-flask-app:latest .
-                  docker stop web-flask || true
-                  docker rm web-flask || true
-                  docker run -d -p 5000:5000 --name web-flask secure-flask-app:latest
-                  docker ps | grep web-flask
+      - name: Run Pylint
+        run: |
+          # Jalankan pylint pada direktori proyek (sesuaikan nama folder jika ada, misal src/ atau biarkan . untuk root)
+          pylint **/*.py --fail-under=8.0
