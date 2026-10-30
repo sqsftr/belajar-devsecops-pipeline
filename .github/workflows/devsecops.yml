@@ -65,6 +65,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_ENABLE_SUMMARY: true
+          GITLEAKS_CONFIG: .gitleaks.toml
+        # Job otomatis gagal (exit code 1) jika ditemukan kebocoran rahasia
 
   # ==========================================
   # CI JOB 4: Test & Coverage (pytest + coverage)
