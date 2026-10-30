@@ -1,0 +1,28 @@
+
+name: Semgrep SAST Pipeline
+
+on:
+  push:
+    branches:
+      - pipeline/semgrep-sast_christin
+  workflow_dispatch:
+
+jobs:
+  semgrep-sast:
+    name: Semgrep SAST Scan
+    runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Run Semgrep OWASP Top 10 Scan
+        run: |
+          semgrep scan \
+            --config p/owasp-top-ten \
+            --error \
+            --verbose \
+            --exclude=".github" \
+            .
