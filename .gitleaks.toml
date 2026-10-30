@@ -1,10 +1,36 @@
-title = "Gitleaks config belajar-devsecops-pipeline"
+title = "Konfigurasi Gitleaks - Yazid"
 
 [extend]
 useDefault = true
 
+# Aturan deteksi kebocoran API Key
+[[rules]]
+id = "rule-api-key"
+description = "Deteksi API Key atau Token rahasia"
+regex = '''(?i)(api_key|apikey|secret_key|access_token|auth_token)\s*[:=]\s*['"][a-zA-Z0-9_\-]{16,}['"]'''
+entropy = 3.5
+keywords = [
+  "api_key",
+  "apikey",
+  "secret_key",
+  "access_token",
+  "auth_token"
+]
+
+# Aturan deteksi password terbuka di source code
+[[rules]]
+id = "rule-hardcoded-password"
+description = "Deteksi hardcoded password dalam kode atau config"
+regex = '''(?i)(password|passwd|db_pass|user_pass)\s*[:=]\s*['"][^\s'"]{6,}['"]'''
+keywords = [
+  "password",
+  "passwd",
+  "db_pass",
+  "user_pass"
+]
+
 [allowlist]
-description = "Abaikan folder tes dan environment virtual"
+description = "Ignore folder testing dan virtual environment"
 paths = [
   '''test/.*''',
   '''\.venv/.*'''
